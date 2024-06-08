@@ -1,7 +1,7 @@
 # CaterPillar-pill-checker
 Check if your perscription pills are in your pill dispenser pilload 
 
-![Caterpillar Logo](https://github.com/yourusername/yourrepository/blob/main/caterpillar-logo.png)
+![Caterpillar Logo](/Users/owner/Projects/pill_id_app/static/caterpillar.webp)
 
 ## About the Project
 
