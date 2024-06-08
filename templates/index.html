@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload JPEG Files</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <img src="{{ url_for('static', filename='caterpillar.webp') }}" style="width: 50%; display: block; margin: 0 auto;" alt="Caterpillar Image">
+    <div class="form-section">
+        <h1 style="text-align: center;">Welcome to CaterPILLar</h1>
+        <h3 style="text-align: center;">Verify if your pill is in a pilload</h3>
+        <div>
+            <form id="uploadForm" method="post" enctype="multipart/form-data">
+                <div class="upload-block">
+                    <label for="multiple_files">Upload Pill Pictures:</label><br>
+                    <input type="file" id="multiple_files" name="multiple_files" multiple accept=".jpg,.jpeg,.png"><br><br>
+                    <div class="thumbnails" id="multiple_files_thumbnails"></div>
+                </div>
+                <br>
+                <div class="upload-block">
+                    <label for="single_file">Upload Collection Image:</label><br>
+                    <input type="file" id="single_file" name="single_file" accept=".jpg,.jpeg"><br><br>
+                    <div class="thumbnails" id="single_file_thumbnails"></div>
+                </div>
+                <br>
+                <input type="submit" value="Check Pills">
+            </form>
+        </div>
+
+        <div class="response-section" style="text-align: center">
+            <h2>Response:</h2>
+            <textarea id="responseText" rows="10" cols="100" readonly></textarea>
+        </div>
+
+    <script>
+        // Function to fetch the API key from the server
+        async function getApiKey() {
+            try {
+                const response = await fetch('/api/get-api-key');
+                const data = await response.json();
+                return data.api_key;
+            } catch (error) {
+                console.error('Error fetching the API key:', error);
+                return null;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const apiKey = await getApiKey();
+            if (!apiKey) {
+                document.getElementById('responseText').value = 'Failed to retrieve API key.';
+                return;
+            }
+
+            const uploadForm = document.getElementById('uploadForm');
+            const multipleFilesInput = document.getElementById('multiple_files');
+            const singleFileInput = document.getElementById('single_file');
+            const multipleFilesThumbnailsContainer = document.getElementById('multiple_files_thumbnails');
+            const singleFileThumbnailsContainer = document.getElementById('single_file_thumbnails');
+            const responseText = document.getElementById('responseText');
+
+            multipleFilesInput.addEventListener('change', () => updateThumbnails(multipleFilesInput, multipleFilesThumbnailsContainer));
+            singleFileInput.addEventListener('change', () => updateThumbnails(singleFileInput, singleFileThumbnailsContainer));
+
+            function updateThumbnails(inputElement, thumbnailsContainer) {
+                thumbnailsContainer.innerHTML = ''; // Clear existing thumbnails
+
+                Array.from(inputElement.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        thumbnailsContainer.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            uploadForm.onsubmit = async function(event) {
+                event.preventDefault(); // Prevent the form from submitting the traditional way
+
+                // Ensure at least one file is selected for each
+                if (multipleFilesInput.files.length === 0 || singleFileInput.files.length === 0) {
+                    responseText.value = 'Please select both pill pictures and a collection image.';
+                    return;
+                }
+
+                // Create FormData to send to the server for upload
+                const formData = new FormData();
+                formData.append('product_image', multipleFilesInput.files[0]); // First image as product image
+                formData.append('shelf_image', singleFileInput.files[0]); // Single image as shelf image
+
+                try {
+                    // First, upload the files to the server
+                    const uploadResponse = await fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const uploadResult = await uploadResponse.json();
+
+                    if (uploadResult.error) {
+                        responseText.value = 'Upload Error: ' + uploadResult.error;
+                        return;
+                    }
+
+                    // Read files as base64 (assumes they are returned as paths and need re-reading)
+                    const readFileAsBase64 = async (filePath) => {
+                        const response = await fetch(filePath);
+                        const blob = await response.blob();
+                        return new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = () => resolve(reader.result.split(',')[1]); // Get base64 part
+                            reader.onerror = reject;
+                            reader.readAsDataURL(blob);
+                        });
+                    };
+
+                    const base64ProductImage = await readFileAsBase64(uploadResult.product_image_path);
+                    const base64ShelfImage = await readFileAsBase64(uploadResult.shelf_image_path);
+
+                    const headers = {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${apiKey}` // Use the fetched API key
+                    };
+
+                    const payload = {
+                        "model": "gpt-4",
+                        "messages": [
+                            {
+                                "role": "system",
+                                "content": "First, I will give you an image of a pill. Then I will give you an image of a collection of pills in a container. Your task is to tell me if the pill is in the collection of pills, and what quadrant of the picture it is in."
+                            },
+                            {
+                                "role": "user",
+                                "content": [
+                                    {
+                                        "type": "text",
+                                        "text": "Here is the product image"
+                                    },
+                                    {
+                                        "type": "image_url",
+                                        "image_url": {
+                                            "url": `data:image/jpeg;base64,${base64ProductImage}`
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "role": "user",
+                                "content": [
+                                    {
+                                        "type": "text",
+                                        "text": "Here is the aisle image"
+                                    },
+                                    {
+                                        "type": "image_url",
+                                        "image_url": {
+                                            "url": `data:image/jpeg;base64,${base64ShelfImage}`
+                                        }
+                                    }
+                                ]
+                            }
+                        ],
+                        "max_tokens": 300
+                    };
+
+                    // Log the payload for debugging
+                    console.log('Payload:', JSON.stringify(payload));
+
+                    // Make the API request to OpenAI
+                    const apiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify(payload)
+                    });
+
+                    const apiResult = await apiResponse.json();
+
+                    // Log the response for debugging
+                    console.log('API Response:', apiResult);
+
+                    if (apiResult.choices && apiResult.choices.length > 0) {
+                        responseText.value = apiResult.choices[0].message.content;
+                    } else {
+                        responseText.value = 'Error: No response from API';
+                    }
+                } catch (error) {
+                    responseText.value = 'Error: ' + error.message;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
