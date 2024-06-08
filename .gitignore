@@ -1,5 +1,8 @@
 # no python test files
-*.py
+imageCompare.py
+imageDesc.py
+pillFinder.py
+
 
 # Standard .gitignore file
 
