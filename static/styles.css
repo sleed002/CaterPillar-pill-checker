@@ -9,7 +9,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    height: 100%;
     font-family: Arial, sans-serif;
     background-color: #f0f0f0;
     padding: 20px;
@@ -70,8 +70,8 @@ input[type="submit"]:hover {
 }
 
 textarea {
-    width: 300px;
-    height: 150px;
+    width: 700px;
+    height: 700px;
     margin-top: 20px;
     padding: 10px;
     border: 1px solid #ddd;
