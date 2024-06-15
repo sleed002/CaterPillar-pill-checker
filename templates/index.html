@@ -2,24 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>CaterPilload</title>
+    <title>CaterPILLoad</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <img src="{{ url_for('static', filename='caterpillar.webp') }}" style="width: 50%; display: block; margin: 0 auto;" alt="Caterpillar Image">
-    <div class="form-section">
-        <h1 style="text-align: center;">Welcome to CaterPILLoad</h1>
-        <h3 style="text-align: center;">Monitor your pilload</h3>
-        <p style="text-align: center;"><i>Because a Happy Human is a Chemically Balanced Human</i></p>
+    <div class="container">
+        <img src="{{ url_for('static', filename='caterpillar.webp') }}" class="logo" alt="Caterpillar Image">
+        <h1>Welcome to CaterPILLoad</h1>
+        <h3>Monitor your pilload</h3>
+        <p><i>Because a Happy Human is a Chemically Balanced Human</i></p>
         <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
             <div class="upload-block">
-                <label for="pill_name">Name Your Pill Image:</label><br>
-                <input type="text" id="pill_name" name="pill_name" placeholder="Enter pill name" required><br><br>
-            </div>
-            <div class="upload-block">
-                <label for="multiple_files">Upload Pill Pictures:</label><br>
-                <input type="file" id="multiple_files" name="pill_image" accept=".jpg,.jpeg,.png" required><br><br>
+                <label for="multiple_files">Upload Up to 10 Pill Pictures:</label><br>
+                <input type="file" id="multiple_files" name="pill_images" accept=".jpg,.jpeg,.png" multiple required><br><br>
                 <div class="thumbnails" id="multiple_files_thumbnails"></div>
+                <div class="name-fields" id="nameFields">
+                    <!-- JavaScript will generate input fields for naming pill images here -->
+                </div>
             </div>
             <div class="upload-block">
                 <label for="single_file">Upload Collection Image:</label><br>
@@ -28,11 +27,9 @@
             </div>
             <input type="submit" id="submitBtn" value="Check Pills">
         </form>
-        <div class="response-section" style="text-align: center">
-            <div class="response-section" style="text-align: center">
-                <h2>Response:</h2>
-                <textarea id="responseText" style="width: 300px;" rows="10" readonly></textarea>
-            </div>
+        <div class="response-section">
+            <h2>Response:</h2>
+            <textarea id="responseText" readonly></textarea>
         </div>
     </div>
 
@@ -62,14 +59,14 @@
                 if (result.error) {
                     responseText.value = 'Error: ' + result.error;
                 } else {
-                    // Extract the specific content from the result and display it
-                    const apiContent = result.api_response_content || 'No response content';
-                    responseText.value = apiContent;
-
+                    // Display the combined response from all API requests
+                    responseText.value = result.api_response_content.join('\n\n');
+                    
                     // Reset the form and clear the thumbnails
                     document.getElementById('uploadForm').reset();
                     document.getElementById('multiple_files_thumbnails').innerHTML = '';
                     document.getElementById('single_file_thumbnails').innerHTML = '';
+                    document.getElementById('nameFields').innerHTML = '';
                 }
             } catch (error) {
                 responseText.value = 'Error: ' + error.message;
@@ -83,13 +80,30 @@
         function updateThumbnails(input, thumbnailsContainerId) {
             const container = document.getElementById(thumbnailsContainerId);
             container.innerHTML = ''; // Clear any existing thumbnails
+            const nameFieldsContainer = document.getElementById('nameFields');
+            nameFieldsContainer.innerHTML = ''; // Clear any existing name fields
 
-            Array.from(input.files).forEach(file => {
+            Array.from(input.files).forEach((file, index) => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
+                    // Create a thumbnail container
+                    const thumbnailContainer = document.createElement('div');
+                    thumbnailContainer.className = 'thumbnail-item';
+                    
+                    // Create and append the image
                     const img = document.createElement('img');
                     img.src = e.target.result;
-                    container.appendChild(img);
+                    thumbnailContainer.appendChild(img);
+
+                    // Create and append the name input field
+                    const nameInput = document.createElement('input');
+                    nameInput.type = 'text';
+                    nameInput.name = `pill_name_${index}`;
+                    nameInput.placeholder = `Enter name for pill ${index + 1}`;
+                    nameInput.required = true;
+                    thumbnailContainer.appendChild(nameInput);
+
+                    container.appendChild(thumbnailContainer);
                 };
                 reader.readAsDataURL(file);
             });
@@ -101,7 +115,18 @@
         });
 
         document.getElementById('single_file').addEventListener('change', function() {
-            updateThumbnails(this, 'single_file_thumbnails');
+            const container = document.getElementById('single_file_thumbnails');
+            container.innerHTML = ''; // Clear any existing thumbnails
+
+            Array.from(this.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    container.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
         });
     </script>
 </body>
