@@ -12,7 +12,7 @@ body {
     height: 100vh;
     font-family: Arial, sans-serif;
     background-color: #f0f0f0;
-    height: 100%;
+    padding: 20px;
 }
 
 .container {
@@ -21,11 +21,12 @@ body {
     padding: 30px;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 800px;
 }
 
 form {
     margin-bottom: 20px;
-    width: 600px;
+    width: 100%;
     text-align: center;
     margin-top: 20px;
 }
@@ -49,10 +50,16 @@ input[type="submit"]:hover {
 }
 
 .thumbnails {
-    display: flex;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
     gap: 10px;
     margin-top: 20px;
+}
+
+.thumbnail-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .thumbnails img {
@@ -75,6 +82,12 @@ textarea {
 .logo {
     max-width: 150px;
     margin-bottom: 20px;
-    margin-left: 0px;
 }
 
+input[type="text"] {
+    width: 100%;
+    margin: 10px auto;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
