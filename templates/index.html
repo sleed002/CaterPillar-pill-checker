@@ -21,11 +21,12 @@
                 </div>
             </div>
             <div class="upload-block">
-                <label for="single_file">Upload Collection Image:</label><br>
+                <label for="single_file">What's in your Pilload:</label><br>
                 <input type="file" id="single_file" name="coll_image" accept=".jpg,.jpeg" required><br><br>
                 <div class="thumbnails" id="single_file_thumbnails"></div>
             </div>
             <input type="submit" id="submitBtn" value="Check Pills">
+            <input type="button" id="resetBtn" value="Reset" style="display: none;" onclick="resetForm()">
         </form>
         <div class="response-section">
             <h2>Response:</h2>
@@ -40,6 +41,7 @@
             const formData = new FormData(this);
             const submitBtn = document.getElementById('submitBtn');
             const responseText = document.getElementById('responseText');
+            const resetBtn = document.getElementById('resetBtn');
 
             // Disable submit button and show waiting message
             submitBtn.disabled = true;
@@ -62,11 +64,9 @@
                     // Display the combined response from all API requests
                     responseText.value = result.api_response_content.join('\n\n');
                     
-                    // Reset the form and clear the thumbnails
-                    document.getElementById('uploadForm').reset();
-                    document.getElementById('multiple_files_thumbnails').innerHTML = '';
-                    document.getElementById('single_file_thumbnails').innerHTML = '';
-                    document.getElementById('nameFields').innerHTML = '';
+                    // Change the submit button to a reset button
+                    submitBtn.style.display = 'none';
+                    resetBtn.style.display = 'block';
                 }
             } catch (error) {
                 responseText.value = 'Error: ' + error.message;
@@ -75,6 +75,21 @@
                 submitBtn.disabled = false;
             }
         };
+
+        // Function to reset the form and clear the images
+        function resetForm() {
+            const uploadForm = document.getElementById('uploadForm');
+            uploadForm.reset();
+
+            document.getElementById('multiple_files_thumbnails').innerHTML = '';
+            document.getElementById('single_file_thumbnails').innerHTML = '';
+            document.getElementById('nameFields').innerHTML = '';
+
+            // Swap the reset button back to the submit button
+            document.getElementById('submitBtn').style.display = 'block';
+            document.getElementById('resetBtn').style.display = 'none';
+            document.getElementById('responseText').value = '';
+        }
 
         // Function to update image thumbnails when files are selected
         function updateThumbnails(input, thumbnailsContainerId) {

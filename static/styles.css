@@ -11,7 +11,7 @@ body {
     align-items: center;
     height: 100%;
     font-family: Arial, sans-serif;
-    background-color: #f0f0f0;
+    background-color: #b0d799c3;
     padding: 20px;
 }
 
@@ -77,6 +77,18 @@ textarea {
     border: 1px solid #ddd;
     border-radius: 5px;
     resize: none;
+}
+
+.container {
+    position: relative;
+    z-index: 1; /* Ensure the content is above the background image */
+    background-color: rgba(255, 255, 255, 0.9); /* Slightly opaque background to improve readability */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+    margin: 50px auto;
+    text-align: center;
 }
 
 .logo {
