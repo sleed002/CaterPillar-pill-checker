@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, jsonify, redirect, url_for
 import os
 import base64
 import requests
@@ -166,12 +166,68 @@ def upload_files():
         app.logger.exception('Exception during file upload or API request')
         return jsonify({"error": str(e)}), 500
 
+@app.route('/upload-concerns', methods=['POST'])
+def upload_concerns():
+    try:
+        # Fetch API key from the environment
+        api_key = os.getenv('OPEN_API_KEY')
+        if not api_key:
+            return jsonify({"error": "API key not found"}), 500
+            
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}"
+        }
+
+        payload = {
+            "model": "gpt-4o",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": """I will give you several pills. You're an expert pharmacist. For each pill in the list provided you will explain the side effects that a user may experience when taking this pill with any other pill in the list. If there are any side effects with any of the pills being taken together, state clearly and concisely what those are. If the pills can be taken together without side effects, respond 'These pills can be taken together without any major health concerns.'
+                            After you have the statements, rewrite the above statements eliminating any descriptive detail. Keep it simply the side effects for each pill combination.
+                            """
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "The pills are trazidone, nyquil and amoxicillin."
+                        }
+                    ]
+                }
+            ],
+            "max_tokens": 300
+        }
+
+        response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
+
+        if response.status_code == 200:
+            api_result = response.json()
+            # Extract the content from the response
+            message_content = api_result['choices'][0]['message']['content']
+            app.logger.debug('OpenAI API Response: %s', message_content)
+            return jsonify({"api_response_content": message_content})
+
+        else:
+            app.logger.error('Error from OpenAI API: %s', response.text)
+            return jsonify({"error": f"Error from OpenAI API: {response.text}"}), response.status_code
+
+    except Exception as e:
+        app.logger.exception('Exception during /upload-concerns endpoint')
+        return jsonify({"error": str(e)}), 500
+
 def allowed_file(filename):
     ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png'}
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 if __name__ == "__main__":
-    # Ensure the upload folder exists
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
     app.run(debug=True)

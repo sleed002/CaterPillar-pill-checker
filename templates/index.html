@@ -13,38 +13,43 @@
         <p><i>Because a Happy Human is a Chemically Balanced Human</i></p>
         <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
             <div class="upload-block">
-                <label for="multiple_files">User Perscriptions (up to 5):</label><br>
-                <input type="file" id="multiple_files" name="pill_images" accept=".jpg,.jpeg,.png" multiple required><br><br>
+                <label for="multiple_files">User Prescriptions:</label>
+                <input type="file" id="multiple_files" name="pill_images" accept=".jpg,.jpeg,.png" multiple required>
                 <div class="thumbnails" id="multiple_files_thumbnails"></div>
                 <div class="name-fields" id="nameFields">
                     <!-- JavaScript will generate input fields for naming pill images here -->
                 </div>
             </div>
             <div class="upload-block">
-                <label for="single_file">What's in your Pilload:</label><br>
-                <input type="file" id="single_file" name="coll_image" accept=".jpg,.jpeg" required><br><br>
+                <label for="single_file">What's in your Pilload:</label>
+                <input type="file" id="single_file" name="coll_image" accept=".jpg,.jpeg" required>
                 <div class="thumbnails" id="single_file_thumbnails"></div>
             </div>
-            <input type="submit" id="submitBtn" value="Check Pills">
-            <input type="button" id="resetBtn" value="Reset" style="display: none;" onclick="resetForm()">
+            <input type="button" id="submitPillsBtn" value="Check Pills" onclick="submitPillsForm()">
         </form>
         <div class="response-section">
             <h2>What's in Your Pilload:</h2>
-            <textarea id="responseText" readonly></textarea>
+            <textarea id="responsePillsText" readonly></textarea>
         </div>
+        <input type="button" id="concernsBtn" value="Check Concerns" onclick="submitConcernsForm()">
+        <div class="response-section">
+            <h2>Concerns with Pilload:</h2>
+            <textarea id="responseConcernsText" readonly></textarea>
+        </div>
+        <input type="button" id="resetBtn" value="Reset" style="display: none;" onclick="resetForm()">
     </div>
 
     <script>
-        document.getElementById('uploadForm').onsubmit = async function(event) {
-            event.preventDefault(); // Prevent the form from submitting the traditional way
-    
-            const formData = new FormData(this);
-            const submitBtn = document.getElementById('submitBtn');
-            const responseText = document.getElementById('responseText');
+        async function submitPillsForm() {
+            const formData = new FormData(document.getElementById('uploadForm'));
+            const submitBtn = document.getElementById('submitPillsBtn');
+            const concernsBtn = document.getElementById('concernsBtn');
+            const responseText = document.getElementById('responsePillsText');
             const resetBtn = document.getElementById('resetBtn');
     
             // Disable submit button and show waiting message
             submitBtn.disabled = true;
+            concernsBtn.disabled = true;
             responseText.value = 'Waiting...';
     
             try {
@@ -56,7 +61,7 @@
                 const result = await response.json();
     
                 // Log the full response object for debugging
-                console.log('Full Response:', result);
+                console.log('Full Response (Pills):', result);
     
                 if (result.error) {
                     responseText.value = 'Error: ' + result.error;
@@ -67,15 +72,57 @@
                     // Change the submit button to a reset button
                     submitBtn.style.display = 'none';
                     resetBtn.style.display = 'block';
-    
                 }
             } catch (error) {
                 responseText.value = 'Error: ' + error.message;
             } finally {
                 // Re-enable the submit button
                 submitBtn.disabled = false;
+                concernsBtn.disabled = false;
             }
-        };
+        }
+    
+        async function submitConcernsForm() {
+            const formData = new FormData(document.getElementById('uploadForm'));
+            const submitBtn = document.getElementById('concernsBtn');
+            const pillsBtn = document.getElementById('submitPillsBtn');
+            const responseText = document.getElementById('responseConcernsText');
+            const resetBtn = document.getElementById('resetBtn');
+    
+            // Disable submit button and show waiting message
+            submitBtn.disabled = true;
+            pillsBtn.disabled = true;
+            responseText.value = 'Waiting...';
+    
+            try {
+                const response = await fetch('/upload-concerns', {
+                    method: 'POST',
+                    body: formData
+                });
+    
+                const result = await response.json();
+    
+                // Log the full response object for debugging
+                console.log('Full Response (Concerns):', result);
+    
+                if (result.error) {
+                    responseText.value = 'Error: ' + result.error;
+                } else {
+                    // Display the combined response from all API requests
+                    responseText.value = result.api_response_content
+    
+                    // Change the submit button to a reset button
+                    submitBtn.style.display = 'none';
+                    resetBtn.style.display = 'block';
+                }
+            } catch (error) {
+                responseText.value = 'Error: ' + error.message;
+            } finally {
+                // Re-enable the submit button
+                submitBtn.disabled = false;
+                pillsBtn.disabled = false;
+            }
+        }
     
         // Function to reset the form and clear the images
         function resetForm() {
@@ -87,9 +134,11 @@
             document.getElementById('nameFields').innerHTML = '';
     
             // Swap the reset button back to the submit button
-            document.getElementById('submitBtn').style.display = 'block';
+            document.getElementById('submitPillsBtn').style.display = 'block';
+            document.getElementById('concernsBtn').style.display = 'block';
             document.getElementById('resetBtn').style.display = 'none';
-            document.getElementById('responseText').value = '';
+            document.getElementById('responsePillsText').value = '';
+            document.getElementById('responseConcernsText').value = '';
         }
     
         // Function to update image thumbnails when files are selected

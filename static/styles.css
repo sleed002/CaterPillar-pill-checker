@@ -71,7 +71,7 @@ input[type="submit"]:hover {
 
 textarea {
     width: 700px;
-    height: 100px;
+    height: 200px;
     margin-top: 20px;
     padding: 10px;
     border: 1px solid #ddd;
@@ -102,4 +102,18 @@ input[type="text"] {
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 5px;
+}
+
+.submit-btn, .reset_btn, .concernsBtn {
+    background-color: #4CAF50; /* Green background */
+    color: white; /* White text */
+    border: none;
+    padding: 14px 20px; /* Larger padding */
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin-top: 10px;
+    cursor: pointer;
+    border-radius: 4px;
 }
