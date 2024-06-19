@@ -48,8 +48,8 @@ def upload_files():
 
         # Process each pill image and its corresponding name
         pill_files = request.files.getlist('pill_images')
-        if len(pill_files) > 10:
-            return jsonify({"error": "You can upload up to 10 pill images"}), 400
+        if len(pill_files) > 5:
+            return jsonify({"error": "You can upload up to 5 pill images"}), 400
 
         for index, pill_image in enumerate(pill_files):
             if not allowed_file(pill_image.filename):
@@ -85,8 +85,10 @@ def upload_files():
                         Describe the pill. Ignore any text.
                         Then I will give you an image of a collection of pills called a pilload. 
                         Describe the items shown in the pilload. 
-                        Return a statement stating only if based on these descriptions if the pill '{pill_name}' is in the pilload, 
-                        based on appearance alone - no text - and what quadrant of the picture it is in.
+                        <Response>
+                        Return a statement stating only if based on these descriptions if the pill '{pill_name}' is in the pilload, based on appearance alone - no text - and what quadrant of the picture it is in.
+                        </Response>
+                        <Included>Return "True" if pill is in pilload. Return "False" if it is not in the pilload.</Included>
                         """
                     },
                     {
@@ -140,13 +142,19 @@ def upload_files():
                 
                 # Log the response for debugging
                 app.logger.debug('OpenAI API Response: %s', message_content)
+                # Check if 'True' or 'False' is in the response
+                pill_included = "False"
+                if 'True' in message_content:
+                    pill_included = "True"
+                app.logger.debug(pill_included)
                 
                 # Add the response to the list of all responses
-                all_responses.append(f"Pill Name: {pill_name}\nResponse: {message_content}")
+                all_responses.append(f"Pill Name: {pill_name}, Included: {pill_included}")
+
             else:
                 # Log the error for debugging
                 app.logger.error('Error from OpenAI API: %s', response.text)
-                all_responses.append(f"Pill Name: {pill_name}\nError: {response.text}")
+                all_responses.append(f"Error from OpenAI API: {response.text}")
 
         # Return the accumulated responses
         return jsonify({

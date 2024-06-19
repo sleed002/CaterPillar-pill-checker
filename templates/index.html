@@ -13,7 +13,7 @@
         <p><i>Because a Happy Human is a Chemically Balanced Human</i></p>
         <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
             <div class="upload-block">
-                <label for="multiple_files">Upload Up to 10 Pill Pictures:</label><br>
+                <label for="multiple_files">User Perscriptions (up to 5):</label><br>
                 <input type="file" id="multiple_files" name="pill_images" accept=".jpg,.jpeg,.png" multiple required><br><br>
                 <div class="thumbnails" id="multiple_files_thumbnails"></div>
                 <div class="name-fields" id="nameFields">
@@ -29,7 +29,7 @@
             <input type="button" id="resetBtn" value="Reset" style="display: none;" onclick="resetForm()">
         </form>
         <div class="response-section">
-            <h2>Response:</h2>
+            <h2>What's in Your Pilload:</h2>
             <textarea id="responseText" readonly></textarea>
         </div>
     </div>
@@ -37,36 +37,37 @@
     <script>
         document.getElementById('uploadForm').onsubmit = async function(event) {
             event.preventDefault(); // Prevent the form from submitting the traditional way
-
+    
             const formData = new FormData(this);
             const submitBtn = document.getElementById('submitBtn');
             const responseText = document.getElementById('responseText');
             const resetBtn = document.getElementById('resetBtn');
-
+    
             // Disable submit button and show waiting message
             submitBtn.disabled = true;
             responseText.value = 'Waiting...';
-
+    
             try {
                 const response = await fetch('/upload', {
                     method: 'POST',
                     body: formData
                 });
-
+    
                 const result = await response.json();
-
+    
                 // Log the full response object for debugging
                 console.log('Full Response:', result);
-
+    
                 if (result.error) {
                     responseText.value = 'Error: ' + result.error;
                 } else {
                     // Display the combined response from all API requests
                     responseText.value = result.api_response_content.join('\n\n');
-                    
+    
                     // Change the submit button to a reset button
                     submitBtn.style.display = 'none';
                     resetBtn.style.display = 'block';
+    
                 }
             } catch (error) {
                 responseText.value = 'Error: ' + error.message;
@@ -75,41 +76,41 @@
                 submitBtn.disabled = false;
             }
         };
-
+    
         // Function to reset the form and clear the images
         function resetForm() {
             const uploadForm = document.getElementById('uploadForm');
             uploadForm.reset();
-
+    
             document.getElementById('multiple_files_thumbnails').innerHTML = '';
             document.getElementById('single_file_thumbnails').innerHTML = '';
             document.getElementById('nameFields').innerHTML = '';
-
+    
             // Swap the reset button back to the submit button
             document.getElementById('submitBtn').style.display = 'block';
             document.getElementById('resetBtn').style.display = 'none';
             document.getElementById('responseText').value = '';
         }
-
+    
         // Function to update image thumbnails when files are selected
         function updateThumbnails(input, thumbnailsContainerId) {
             const container = document.getElementById(thumbnailsContainerId);
             container.innerHTML = ''; // Clear any existing thumbnails
             const nameFieldsContainer = document.getElementById('nameFields');
             nameFieldsContainer.innerHTML = ''; // Clear any existing name fields
-
+    
             Array.from(input.files).forEach((file, index) => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     // Create a thumbnail container
                     const thumbnailContainer = document.createElement('div');
                     thumbnailContainer.className = 'thumbnail-item';
-                    
+    
                     // Create and append the image
                     const img = document.createElement('img');
                     img.src = e.target.result;
                     thumbnailContainer.appendChild(img);
-
+    
                     // Create and append the name input field
                     const nameInput = document.createElement('input');
                     nameInput.type = 'text';
@@ -117,22 +118,22 @@
                     nameInput.placeholder = `Enter name for pill ${index + 1}`;
                     nameInput.required = true;
                     thumbnailContainer.appendChild(nameInput);
-
+    
                     container.appendChild(thumbnailContainer);
                 };
                 reader.readAsDataURL(file);
             });
         }
-
+    
         // Event listeners to update thumbnails on file selection
         document.getElementById('multiple_files').addEventListener('change', function() {
             updateThumbnails(this, 'multiple_files_thumbnails');
         });
-
+    
         document.getElementById('single_file').addEventListener('change', function() {
             const container = document.getElementById('single_file_thumbnails');
             container.innerHTML = ''; // Clear any existing thumbnails
-
+    
             Array.from(this.files).forEach(file => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
