@@ -3,7 +3,7 @@ import requests
 import os
 
 # OpenAI API Key
-api_key = "sk-proj-JEJv89EbxE4H46ctwnkbT3BlbkFJxr91nFBkonh774h2Tjwy"
+
 
 
 headers = {
