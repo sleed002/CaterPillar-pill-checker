@@ -88,7 +88,9 @@ def upload_files():
                         <Response>
                         Return a statement stating only if based on these descriptions if the pill '{pill_name}' is in the pilload, based on appearance alone - no text - and what quadrant of the picture it is in.
                         </Response>
-                        <Included>Return "True" if pill is in pilload. Return "False" if it is not in the pilload.</Included>
+                        <Included>Return "True" if pill is in pilload. Return "False" if it is not in the pilload.
+                        Do not return both True and False.
+                        </Included>
                         """
                     },
                     {
@@ -169,6 +171,13 @@ def upload_files():
 @app.route('/upload-concerns', methods=['POST'])
 def upload_concerns():
     try:
+        # Extract the list of pill names from the request JSON
+        data = request.get_json()
+        pill_names = data.get('pill_names', [])
+
+        if not pill_names:
+            return jsonify({"error": "No valid pill names provided"}), 400
+        
         # Fetch API key from the environment
         api_key = os.getenv('OPEN_API_KEY')
         if not api_key:
@@ -179,28 +188,26 @@ def upload_concerns():
             "Authorization": f"Bearer {api_key}"
         }
 
+        # Prepare the payload with pill names for the OpenAI API
+        pills_text = ', '.join(pill_names)
         payload = {
             "model": "gpt-4o",
             "messages": [
                 {
                     "role": "system",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": """I will give you several pills. You're an expert pharmacist. For each pill in the list provided you will explain the side effects that a user may experience when taking this pill with any other pill in the list. If there are any side effects with any of the pills being taken together, state clearly and concisely what those are. If the pills can be taken together without side effects, respond 'These pills can be taken together without any major health concerns.'
-                            After you have the statements, rewrite the above statements eliminating any descriptive detail. Keep it simply the side effects for each pill combination.
-                            """
-                        }
-                    ]
+                    "content": """
+                    I will give you several pills. You're an expert pharmacist. State the pills provided. Then, For each 
+                    pill in the list provided you will explain the side effects that a user may experience when taking this 
+                    pill with any other pill in the list. If there are any side effects with any of the pills being taken 
+                    together, state clearly and concisely what those are. If the pills can be taken together without side 
+                    effects, respond: 'These pills can be taken together without any major health concerns.'
+                    After you have the statements, rewrite the above statements eliminating any descriptive detail. 
+                    Keep it simply the side effects for each pill combination.
+                    """
                 },
                 {
                     "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "The pills are trazidone, nyquil and amoxicillin."
-                        }
-                    ]
+                    "content": f"The pills are {pills_text}."
                 }
             ],
             "max_tokens": 300
@@ -210,9 +217,8 @@ def upload_concerns():
 
         if response.status_code == 200:
             api_result = response.json()
-            # Extract the content from the response
+            # Extract the response content for display
             message_content = api_result['choices'][0]['message']['content']
-            app.logger.debug('OpenAI API Response: %s', message_content)
             return jsonify({"api_response_content": message_content})
 
         else:

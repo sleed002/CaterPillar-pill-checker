@@ -17,18 +17,24 @@ body {
 
 .container {
     text-align: center;
-    background-color: #fff;
+    background-color: rgba(255, 255, 255, 0.9); /* Slightly opaque background to improve readability */
     padding: 30px;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 800px;
+    max-width: 1000px;
+    margin: 50px auto;
+    z-index: 1; /* Ensure the content is above the background */
+}
+
+.logo {
+    max-width: 150px;
+    margin-bottom: 20px;
 }
 
 form {
-    margin-bottom: 20px;
-    width: 100%;
-    text-align: center;
     margin-top: 20px;
+    text-align: center;
+    width: 100%;
 }
 
 input[type="file"] {
@@ -36,16 +42,32 @@ input[type="file"] {
     margin: 10px auto;
 }
 
-input[type="submit"] {
+input[type="text"] {
+    display: block;
+    margin: 10px auto;
+    padding: 5px;
+    width: calc(100% - 20px); /* Ensure it doesn't overflow */
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+input[type="submit"],
+input[type="button"] {
     background-color: #4CAF50;
     color: white;
-    padding: 10px 20px;
+    padding: 15px 30px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    font-size: 14px;
+    margin-top: 10px;
+    display: block;
+    margin: 20px auto;
+    width: 200px;
 }
 
-input[type="submit"]:hover {
+input[type="submit"]:hover,
+input[type="button"]:hover {
     background-color: #45a049;
 }
 
@@ -79,41 +101,11 @@ textarea {
     resize: none;
 }
 
-.container {
-    position: relative;
-    z-index: 1; /* Ensure the content is above the background image */
-    background-color: rgba(255, 255, 255, 0.9); /* Slightly opaque background to improve readability */
-    padding: 20px;
+.container-image {
+    width: 300px;
+    transform: rotate(90deg); /* Rotate the image */
+    display: block;
+    margin: 0 auto;
     border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    max-width: 800px;
-    margin: 50px auto;
-    text-align: center;
-}
-
-.logo {
-    max-width: 150px;
-    margin-bottom: 20px;
-}
-
-input[type="text"] {
-    width: 100%;
-    margin: 10px auto;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-}
-
-.submit-btn, .reset_btn, .concernsBtn {
-    background-color: #4CAF50; /* Green background */
-    color: white; /* White text */
-    border: none;
-    padding: 14px 20px; /* Larger padding */
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin-top: 10px;
-    cursor: pointer;
-    border-radius: 4px;
+    border: 2px solid #ddd;
 }
